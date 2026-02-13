@@ -1,3 +1,5 @@
+"""HTTP client for the SEC EDGAR API with rate limiting and error handling."""
+
 import time
 
 import requests
@@ -5,8 +7,6 @@ import requests
 
 class EdgarClientError(Exception):
     """Raised when an SEC EDGAR API request fails."""
-
-    pass
 
 
 class EdgarClient:

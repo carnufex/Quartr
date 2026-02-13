@@ -1,3 +1,5 @@
+"""HTML to PDF conversion using weasyprint."""
+
 import logging
 import re
 

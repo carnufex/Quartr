@@ -1,13 +1,12 @@
+"""Parser functions for SEC EDGAR API responses."""
+
+
 class TickerNotFoundError(Exception):
     """Raised when a ticker symbol cannot be resolved to a CIK."""
-
-    pass
 
 
 class FilingNotFoundError(Exception):
     """Raised when no 10-K filing is found for a company."""
-
-    pass
 
 
 def resolve_cik(ticker: str, mapping: dict) -> str:
