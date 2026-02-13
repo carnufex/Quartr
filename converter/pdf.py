@@ -25,6 +25,9 @@ def html_to_pdf(html_content: str, output_path: str, base_url: str = None) -> No
     if base_url:
         html_content = _make_images_absolute(html_content, base_url)
 
+    # Inject CSS to ensure page breaks work in Chromium print-to-PDF
+    html_content = _inject_print_css(html_content)
+
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
@@ -128,5 +131,66 @@ def _make_images_absolute(html_content: str, base_url: str) -> str:
             # If image download fails, leave the original URL
             # (will show as broken image in PDF)
             pass
+
+    return str(soup)
+
+
+def _inject_print_css(html_content: str) -> str:
+    """Inject CSS to ensure page breaks work correctly in Chromium.
+
+    SEC filings use inline styles like <hr style="page-break-after:always">
+    which Chromium doesn't always respect in print-to-PDF mode. This function
+    injects CSS rules that explicitly handle page breaks.
+
+    Args:
+        html_content: The HTML content to process.
+
+    Returns:
+        HTML content with injected print CSS.
+    """
+    soup = BeautifulSoup(html_content, "html.parser")
+
+    # Create print CSS
+    style_tag = soup.new_tag("style")
+    style_tag.string = """
+        @media print {
+            /* Force page breaks on HR elements with page-break-after */
+            hr[style*="page-break-after"] {
+                page-break-after: always !important;
+                break-after: always !important;
+                display: block !important;
+                height: 0 !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Force page breaks on any element with page-break-before */
+            [style*="page-break-before"] {
+                page-break-before: always !important;
+                break-before: always !important;
+            }
+
+            /* Prevent page breaks inside table rows */
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+        }
+    """
+
+    # Insert at the beginning of <head> or create <head> if missing
+    head = soup.find("head")
+    if head:
+        head.insert(0, style_tag)
+    else:
+        html_tag = soup.find("html")
+        if html_tag:
+            new_head = soup.new_tag("head")
+            html_tag.insert(0, new_head)
+            new_head.append(style_tag)
+        else:
+            # No HTML structure, just prepend
+            soup.insert(0, style_tag)
 
     return str(soup)
