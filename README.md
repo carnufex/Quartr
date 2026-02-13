@@ -1,15 +1,12 @@
 # SEC EDGAR 10-K Report Fetcher
 
-CLI tool that fetches the latest 10-K annual reports from the SEC EDGAR API and converts them to PDF format.
+CLI tool that fetches the latest 10-K annual reports from the SEC EDGAR API and converts them to PDF format using Chromium for accurate rendering.
 
 ## Quick Start
 
 ### Prerequisites
+- Docker
 
-- **Docker** - Recommended for all platforms
-- Python 3.10+ (for local development)
-- On Linux/macOS: system libraries for weasyprint (Pango, Cairo, GDK-Pixbuf)
-- On Windows: Docker is strongly recommended as weasyprint requires GTK libraries that are complex to install
 
 ### Run with Pre-built Docker Image (Recommended)
 
@@ -28,14 +25,6 @@ docker build -t sec-10k-fetcher .
 docker run -v ./output:/app/output sec-10k-fetcher
 ```
 
-### Run with Python
-
-**Note:** This approach has not been verified, but should work on Linux/macOS with proper system libraries installed. Windows users should use Docker instead due to weasyprint's GTK dependencies.
-
-```bash
-pip install -r requirements.txt
-python main.py
-```
 
 ## Usage
 
@@ -69,15 +58,6 @@ docker run -v ./output:/app/output sec-10k-fetcher
 
 # Using locally built image - specific tickers
 docker run -v ./output:/app/output sec-10k-fetcher AAPL META
-
-# Using Python directly - default companies
-python main.py
-
-# Using Python directly - specific companies
-python main.py AAPL META
-
-# Using Python directly - custom output directory
-python main.py --output-dir reports AAPL META
 ```
 
 ## How It Works
@@ -86,7 +66,11 @@ python main.py --output-dir reports AAPL META
 2. Fetches each company's filing history from the EDGAR submissions API
 3. Finds the most recent 10-K filing in the submissions
 4. Downloads the filing HTML document
-5. Converts the HTML to PDF using weasyprint
+5. Downloads and embeds referenced images as base64 data URLs
+6. Measures table widths using JavaScript in Chromium
+7. Calculates optimal scale factor to fit wide tables on the page
+8. Converts the HTML to PDF using Playwright (Chromium engine)
+
 
 ## Project Structure
 
@@ -96,7 +80,7 @@ edgar/
   client.py          # SEC EDGAR HTTP client with rate limiting
   parser.py          # EDGAR response parsing and data extraction
 converter/
-  pdf.py             # HTML to PDF conversion
-requirements.txt     # Python dependencies
-Dockerfile           # Container build instructions
+  pdf.py             # HTML to PDF conversion using Playwright
+requirements.txt     # Python dependencies (playwright, requests, beautifulsoup4)
+Dockerfile           # Container with Python + Chromium
 ```
