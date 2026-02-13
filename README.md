@@ -1,6 +1,6 @@
 # SEC EDGAR 10-K Report Fetcher
 
-CLI tool that fetches the latest 10-K annual reports from the SEC EDGAR API and converts them to PDF format using Chromium for accurate rendering.
+CLI tool that fetches the latest 10-K annual reports from the SEC EDGAR API and converts them to PDF format.
 
 ## Quick Start
 

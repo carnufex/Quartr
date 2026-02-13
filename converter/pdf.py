@@ -1,7 +1,6 @@
 """HTML to PDF conversion using Playwright (Chromium)."""
 
 import base64
-import re
 from urllib.parse import urljoin
 
 import requests
@@ -125,7 +124,7 @@ def _make_images_absolute(html_content: str, base_url: str) -> str:
 
             img["src"] = data_url
 
-        except Exception:
+        except (requests.RequestException, ValueError, KeyError):
             # If image download fails, leave the original URL
             # (will show as broken image in PDF)
             pass
